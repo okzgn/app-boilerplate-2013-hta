@@ -1,0 +1,142 @@
+/*	Default 7	*/
+
+/*	RESET		*/
+
+	html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td,article,aside,canvas,details,embed,figure,figcaption,footer,header,hgroup,menu,nav,output,ruby,section,summary,time,mark,audio,video{border:0;font-size:100%;font:inherit;vertical-align:baseline;margin:0;padding:0}article,aside,details,figcaption,figure,footer,header,hgroup,menu,nav,section{display:block}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:none}table{border-collapse:collapse;border-spacing:0}
+
+
+/*	DESIGN		*/
+
+	body {
+		background-color: #eee;
+		font-family: verdana;
+		display: none;
+	}
+
+	a {
+		color: #666;
+		text-decoration: underline;
+	}
+
+	a:hover {
+		color: #000;
+	}
+
+	#AppHeader {
+		background-color: #069;
+		color: #fff;
+		overflow: hidden;
+	}
+
+	#AppHeaderIcon {
+		width: 48px;
+		height: 48px;
+		background: url(icon.png) 16px center no-repeat;
+		float: left;
+	}
+
+	#AppHeaderTitle {
+		float: left;
+		padding: 16px 16px 0 8px;
+	}
+
+	#AppHeaderControls {
+		position: absolute;
+		width: 80px;
+		font-size: 70%;
+	}
+
+		#AppHeaderControls a {
+			display: inline-block;
+			color: #fff;
+			padding: 8px 12px;
+			background-color: #07a;
+			text-decoration: none;
+		}
+
+		#AppHeaderControls a:hover {
+			background-color: #09c;
+		}
+
+		#AppHeaderControls a.AppHeader-closeBtn {
+			background-color: #036;
+		}
+
+		#AppHeaderControls a.AppHeader-closeBtn:hover {
+			background-color: #e00;
+		}
+
+	#AppHeaderMenu {
+		padding-top: 10px;
+	}
+
+	#AppMenu {
+		font-size: 77%;
+	}
+
+		#AppMenu ul.menu {
+    		z-index: 1000;
+		}
+
+		#AppMenu li.menu-item {
+			display: inline;
+			margin-right: 2px;
+		}
+
+		#AppMenu li.menu-item a {
+			display: inline-block;
+			padding: 8px 12px;
+			color: #fff;
+			text-decoration: none;
+		}
+
+		#AppMenu li.menu-item-selected a {
+			background-color: #036;
+			color: #ccc !important;
+		}
+
+		#AppMenu li.menu-item-selected a:hover {
+			background-color: #036 !important;
+			color: #fff !important;
+		}
+
+		#AppMenu ul.menu li.menu-item a:hover {
+			background-color: #07a;
+		}
+
+		#AppMenu ul.submenu {
+			display: none;
+			position: absolute;
+			border: 2px solid #069;
+			background-color: #eee;
+			padding: 1px;
+		}
+
+		#AppMenu ul.submenu .submenu-item li {
+			margin-bottom: 1px;
+
+		}
+
+		#AppMenu ul.submenu .submenu-active {
+			background-color: #ccc;
+		}
+
+		#AppMenu ul.submenu .submenu-item a {
+			display: block;
+			width: 150px;
+			padding: 6px 10px;
+			color: #069;
+			text-decoration: none;
+		}
+
+		#AppMenu ul.submenu .submenu-item a:hover {
+			color: #fff;
+			background-color: #07a;
+		}
+
+	#AppBody {
+		color: #000;
+		border: 2px solid #069;
+		border-top: 0 !important;
+		overflow: auto;
+	}

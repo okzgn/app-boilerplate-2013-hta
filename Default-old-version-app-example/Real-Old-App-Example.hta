@@ -1,0 +1,1245 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="es" xml:lang="es">
+
+<head>
+
+<title>Registro de venta de veh&iacute;culos</title>
+
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+<meta name="author" content="Elias A.Soshina - www.efas@hotmail.com" />
+
+<hta:application applicationname="RVV" border="none" caption="no" contextmenu="no" icon="" innerborder="no" navigable="yes" scroll="no" scrollflat="yes" selection="no" showintaskbar="yes" version="1.1" />
+
+<script type="text/javascript">
+//<![CDATA[
+
+	var GRL_MOTOR = navigator.userAgent;
+
+	var is6 = /MSIE 6/.test(GRL_MOTOR);
+	var is7 = /MSIE 7/.test(GRL_MOTOR);
+	var is8 = /MSIE 8/.test(GRL_MOTOR);
+	var is9 = /MSIE 9/.test(GRL_MOTOR);
+
+	var FILE_DESTINY_PATH = '';
+	var FILE_DESTINY_NAME = 'rvv';
+
+if(!!is6 || !!is7 || !!is8 || !!is9){
+	var doc = {
+		get: function(target){
+			var exist;
+			if(exist = document.getElementById(target)) return exist;
+			return false
+		}
+	};
+
+	var Core = {
+			appWidth: 680,
+			appHeight: 500,
+
+			event: function(object, type, func){
+				if(!object) return false;
+				object.attachEvent('on' + type, func);
+			},
+
+			pointer: function(){
+				var x = 0, y = 0, event = window.event;
+				if(event.clientX || event.clientY){
+    					if(document.documentElement.scrollTop){
+       						x = event.clientX + document.documentElement.scrollLeft;
+       						y = event.clientY + document.documentElement.scrollTop;
+       					}
+  					else {
+     						x = event.clientX + document.body.scrollLeft;
+        					y = event.clientY + document.body.scrollTop;
+        				}
+    				}
+				return {
+					top: x,
+					left: y
+				}
+			},
+
+			ubicate: function(type, uWid, uHei){
+				var force = (uWid && uHei);
+				var aWid = this.appWidth,
+					aHei = this.appHeight,
+					sWid = screen.width,
+					sHei = screen.height,
+					x = 0,
+					y = 0;
+
+				switch(type){
+					case 'center' :
+						x = Math.round((sWid - aWid) / 2);
+						y = Math.round((sHei - aHei) / 2);
+					break;
+				}
+
+				if(!force) window.resizeTo(aWid, aHei);
+				else window.resizeTo(uWid, uHei);
+				window.moveTo(x, y);
+			}
+		}
+
+	function focusIn(target){
+		var objective = doc.get(target);
+		objective.focus();
+		objective.select();
+	}
+
+	function focusInFirst(){
+		focusIn('numeroRuc');
+	}
+
+	function checked(name){
+		var inputs = document.getElementsByTagName('input');
+		for(var i = 0, array = []; i < inputs.length; i++){
+			if(inputs[i].getAttribute('name') == name && inputs[i].getAttribute('type') == 'radio' && inputs[i].getAttribute('checked')) return inputs[i].value;
+		}
+	}
+
+	function selected(id){
+		var object = doc.get(id);
+		return object.options[object.selectedIndex].value;
+	}
+
+	function temporalMessage(msj){
+		doc.get('response').innerHTML = msj;
+		setTimeout(function(){ doc.get('response').innerHTML = "&nbsp;"; }, 4000);
+	}
+
+	function noComplete(){
+		temporalMessage('Revise detenidamente, existen campos incorrectos o faltantes');
+	}
+
+	function cleanAll(){
+		var inputs = document.getElementsByTagName('input');
+		for(var i = 0; i < inputs.length; i++){
+			if(inputs[i].getAttribute('type') == 'text') inputs[i].value = '';
+		}
+		focusInFirst();
+	}
+
+	Core.event(window, 'load', function(){
+
+		doc.get('RVV').style.display = 'block';
+
+		Core.ubicate('center');
+
+		Core.event(doc.get('icon_close'), 'click', function(){
+			window.close();
+		});
+
+		Core.event(doc.get('common_icon_close'), 'click', function(){
+			doc.get('Control').style.display = 'none';
+		});
+
+		Core.event(doc.get('icon_help'), 'click', function(){
+			doc.get('Control').style.display = 'block';
+		});
+
+		Core.event(doc.get('icon_minimize'), 'click', function(){
+			Core.ubicate('center', 48, 48);
+			doc.get('Maximizer').style.display = 'block';
+		});
+
+		Core.event(doc.get('Maximizer_point'), 'click', function(){
+			Core.ubicate('center');
+			doc.get('Maximizer').style.display = 'none';
+		});
+
+		Core.event(document, 'mousemove', function(){
+			var cash = Core.pointer(), x = cash.top, y = cash.left;
+			doc.get('px').innerHTML = x;
+			doc.get('py').innerHTML = y;
+		});
+
+		focusInFirst();
+
+		Core.event(doc.get('ResetButton'), 'click', cleanAll);
+
+		Core.event(doc.get('GenerateButton'), 'click', function(){
+
+			var correct = false;
+
+			var CAMPO_numeroRuc			= doc.get('numeroRuc');
+			var CAMPO_rucComercializador		= doc.get('rucComercializador');
+			var CAMPO_CAMVCpn			= doc.get('CAMVCpn');
+			var CAMPO_serialVin			= doc.get('serialVin');
+			var CAMPO_nombrePropietario		= doc.get('nombrePropietario');
+			var CAMPO_tipoIdentificacionPropietario	= selected('tipoIdentificacionPropietario');
+			var CAMPO_numeroDocumentoPropietario	= doc.get('numeroDocumentoPropietario');
+			var CAMPO_tipoComprobante		= checked('tipoComprobante');
+			var CAMPO_establecimientoComprobante	= doc.get('establecimientoComprobante');
+			var CAMPO_puntoEmisionComprobante	= doc.get('puntoEmisionComprobante');
+			var CAMPO_numeroComprobante		= doc.get('numeroComprobante');
+			var CAMPO_numeroAutorizacion		= doc.get('numeroAutorizacion');
+			var CAMPO_fechaVenta			= doc.get('fechaVenta');
+			var CAMPO_precioVenta			= doc.get('precioVenta');
+			var CAMPO_codigoCantonMatriculacion	= selected('codigoCantonMatriculacion');
+			var CAMPO_tipoDireccion			= checked('tipoDir');
+			var CAMPO_calleDireccion		= doc.get('calleDir');
+			var CAMPO_numeroDireccion		= doc.get('numeroDir');
+			var CAMPO_interseccionDireccion		= doc.get('interseccionDir');
+			var CAMPO_tipoTelefono			= checked('tipoTel');
+			var CAMPO_provinciaCodigoTelefono	= selected('provinciaCodTel');
+			var CAMPO_numeroTelefono		= doc.get('numeroTel');
+
+		if(CAMPO_numeroRuc.value.length == 13&& !isNaN(CAMPO_numeroRuc.value)) correct = true;
+		else { focusIn('numeroRuc'); noComplete(); return false; }
+
+		if(CAMPO_rucComercializador.value.length == 13 && !isNaN(CAMPO_rucComercializador.value)) correct = true;
+		else { focusIn('rucComercializador'); noComplete(); return false; }
+
+		if(CAMPO_CAMVCpn.value.length == 9 && /[a-zA-Z0-9]/g.test(CAMPO_CAMVCpn.value)) correct = true;
+		else { focusIn('CAMVCpn'); noComplete(); return false; }
+
+		if(CAMPO_serialVin.value.length == 17  && /[a-zA-Z0-9]/g.test(CAMPO_serialVin.value)) correct = true;
+		else { focusIn('serialVin'); noComplete(); return false; }
+
+		if(CAMPO_nombrePropietario.value.length > 6 && /[a-zA-Z0-9 ñÑ]/g.test(CAMPO_nombrePropietario.value)) correct = true;
+		else { focusIn('nombrePropietario'); noComplete(); return false; }
+
+		switch(CAMPO_tipoIdentificacionPropietario){
+			case 'C' :
+				if(CAMPO_numeroDocumentoPropietario.value.length == 10 && !isNaN(CAMPO_numeroDocumentoPropietario.value)) correct = true;
+				else { focusIn('numeroDocumentoPropietario'); noComplete(); return false; }
+			break;
+			case 'R' :
+				if(CAMPO_numeroDocumentoPropietario.value.length == 13 && !isNaN(CAMPO_numeroDocumentoPropietario.value)) correct = true;
+				else { focusIn('numeroDocumentoPropietario'); noComplete(); return false; }
+			break;
+			case 'P' :
+				if(CAMPO_numeroDocumentoPropietario.value.length > 12 && CAMPO_numeroDocumentoPropietario.value.length < 18 && /[a-zA-Z0-9]/g.test(CAMPO_numeroDocumentoPropietario.value)) correct = true;
+				else { focusIn('numeroDocumentoPropietario'); noComplete(); return false; }
+			break;
+		}
+
+		if(CAMPO_establecimientoComprobante.value.length == 3 && !isNaN(CAMPO_establecimientoComprobante.value)) correct = true;
+		else { focusIn('establecimientoComprobante'); noComplete(); return false; }
+
+		if(CAMPO_puntoEmisionComprobante.value.length == 3 && !isNaN(CAMPO_puntoEmisionComprobante.value)) correct = true;
+		else { focusIn('puntoEmisionComprobante'); noComplete(); return false; }
+
+		if(CAMPO_numeroComprobante.value.length > 0 && CAMPO_numeroComprobante.value.length < 6 && !isNaN(CAMPO_numeroComprobante.value)) correct = true;
+		else {focusIn('numeroComprobante'); noComplete(); return false; }
+
+		if(CAMPO_numeroAutorizacion.value.length == 10 && !isNaN(CAMPO_numeroAutorizacion.value)) correct = true;
+		else { focusIn('numeroAutorizacion'); noComplete(); return false; }
+
+		if(CAMPO_fechaVenta.value.length > 6 && CAMPO_fechaVenta.value.length < 13 && /[0-9\-\/]/g.test(CAMPO_fechaVenta.value)) correct = true;
+		else { focusIn('fechaVenta'); noComplete(); return false; }
+
+		if(CAMPO_precioVenta.value.length > 0 && !isNaN(CAMPO_precioVenta.value)) correct = true;
+		else { focusIn('precioVenta'); noComplete(); return false; }
+
+		if(CAMPO_calleDireccion.value.length > 3 && /[a-zA-Z0-9 ñÑ]/g.test(CAMPO_calleDireccion.value)) correct = true;
+		else { focusIn('calleDir'); noComplete(); return false; }
+
+		if(CAMPO_numeroDireccion.value.length > 1 && CAMPO_numeroDireccion.value.length < 6 && /[a-zA-Z0-9\-]/g.test(CAMPO_numeroDireccion.value)) correct = true;
+		else { focusIn('numeroDir'); noComplete(); return false; }
+
+		if(CAMPO_interseccionDireccion.value.length > 0 && /[a-zA-Z0-9 ñÑ]/g.test(CAMPO_interseccionDireccion.value)) correct = true;
+		else { focusIn('interseccionDir'); noComplete(); return false; }
+
+		if(CAMPO_tipoTelefono == 'fijo'){
+			if(CAMPO_numeroTelefono.value.length == 7 && !isNaN(CAMPO_numeroTelefono.value)) correct = true;
+			else { focusIn('numeroTel'); noComplete(); return false; }
+		}
+		else {
+			if(CAMPO_numeroTelefono.value.length == 9 && !isNaN(CAMPO_numeroTelefono.value)) correct = true;
+			else { focusIn('numeroTel'); noComplete(); return false; }
+		}
+
+		if(!!correct){
+
+			var SysObject = new ActiveXObject('Scripting.FileSystemObject'); 
+			var FileGen = SysObject.CreateTextFile(FILE_DESTINY_PATH + FILE_DESTINY_NAME + '_' + ((new Date).getTime()) + '.xml', true), statusGen = FileGen ? true : false;
+
+			FileGen.WriteLine('<?xml version="1.0" encoding="windows-1252"?><ventas><datosRegistrador><numeroRUC>' + CAMPO_numeroRuc.value + '</numeroRUC></datosRegistrador><datosVentas><venta><rucComercializador>' + CAMPO_rucComercializador.value + '</rucComercializador><CAMVCpn>' + CAMPO_CAMVCpn.value + '</CAMVCpn><serialVin>' + CAMPO_serialVin.value + '</serialVin><nombrePropietario>' + CAMPO_nombrePropietario.value + '</nombrePropietario><tipoIdentificacionPropietario>' + CAMPO_tipoIdentificacionPropietario + '</tipoIdentificacionPropietario><numeroDocumentoPropietario>' + CAMPO_numeroDocumentoPropietario.value + '</numeroDocumentoPropietario><tipoComprobante>' + CAMPO_tipoComprobante + '</tipoComprobante><establecimientoComprobante>' + CAMPO_establecimientoComprobante.value + '</establecimientoComprobante><puntoEmisionComprobante>' + CAMPO_puntoEmisionComprobante.value + '</puntoEmisionComprobante><numeroComprobante>' + CAMPO_numeroComprobante.value + '</numeroComprobante><numeroAutorizacion>' + CAMPO_numeroAutorizacion.value + '</numeroAutorizacion><fechaVenta>' + CAMPO_fechaVenta.value + '</fechaVenta><precioVenta>' + CAMPO_precioVenta.value + '</precioVenta><codigoCantonMatriculacion>' + CAMPO_codigoCantonMatriculacion + '</codigoCantonMatriculacion><datosDireccion><tipo>' + CAMPO_tipoDireccion + '</tipo><calle>' + CAMPO_calleDireccion.value + '</calle><numero>' + CAMPO_numeroDireccion.value + '</numero><interseccion>' + CAMPO_interseccionDireccion.value + '</interseccion></datosDireccion><datosTelefono><tipo>' + CAMPO_tipoTelefono + '</tipo><provincia>' + CAMPO_provinciaCodigoTelefono + '</provincia><numero>' + CAMPO_numeroTelefono.value + '</numero></datosTelefono></venta></datosVentas></ventas>');
+			FileGen.Close();
+
+			if(statusGen){
+				temporalMessage('Archivo XML creado exitosamente');
+				cleanAll();
+			}
+			else temporalMessage('Fallo al crear el archivo');
+
+		}
+
+		});
+
+		function individual(type, object, fluctuate){
+			switch(type){
+				case 'focus' :
+					fluctuate = (!!fluctuate) ? object.parentNode.parentNode : object.parentNode;
+					Core.event(fluctuate, 'click', function(){ object.focus(); object.select(); });
+					Core.event(object, 'focus', function(){ fluctuate.className += ' tigtened'; });
+					Core.event(object, 'blur', function(){ fluctuate.className = fluctuate.className.replace(/\stigtened/g, ''); });
+				break;
+				case 'hover':
+					fluctuate = (!!fluctuate) ? object.parentNode.parentNode : object.parentNode;
+					Core.event(object, 'mouseover', function(){fluctuate.className += ' tigtenedSel'; });
+					Core.event(object, 'mouseout', function(){ fluctuate.className = fluctuate.className.replace(/\stigtenedSel/g, ''); });
+			}
+		}
+
+		var observersInputs = document.getElementsByTagName('input'),
+			observersSelects = document.getElementsByTagName('*');
+
+		for(var i = 0; i < observersInputs.length; i++){
+			if(observersInputs[i].getAttribute('type') == 'text') individual('focus', observersInputs[i]);
+		}
+		for(var j = 0; j < observersSelects.length; j++){
+			if(/cluster/g.test(observersSelects[j].className)) individual('hover', observersSelects[j]);
+		}
+
+		var seeCodes = doc.get('codigoCantonMatriculacion').getElementsByTagName('option');
+
+		for(var k = 0; k < seeCodes.length; k++){
+			seeCodes[k].innerHTML = seeCodes[k].value + '&nbsp;&nbsp;&nbsp;' + seeCodes[k].innerHTML;
+		}
+	});
+}
+
+else {
+	alert('Lo siento, este programa no funciona en sistemas incompatibles o obsoletos');
+	window.close();
+}
+
+
+/* ____ Final */
+
+//]]>
+</script>
+
+<style type="text/css">
+
+html,body,div,dl,dt,dd,ul,ol,li,h1,h2,h3,h4,h5,h6,pre,code,form,fieldset,legend,input,textarea,p,blockquote,th,td{margin:0;padding:0;border:0;outline:0;}html,body{width:100%;height:100%;background-color:#fff;font-size:12pt;}body,legend,input,textarea,select{color:#000;}input,textarea,select{font-family:inherit;font-size:100%;font-weight:inherit;}h1,h2,h3,h4,h5,h6{font-size:100%;font-weight:normal;}li{list-style:none;float:left;}abbr,acronym,fieldset,img{border:0;}address,caption,cite,code,dfn,em,strong,th,var{font-style:normal;font-weight:normal;}table{border-collapse:collapse;border-spacing:0;}caption,th{text-align:left;}abbr,acronym{font-variant:normal;}sup{vertical-align:text-top;}sub{vertical-align:text-bottom;}q:before,q:after{content:'';}:active,:focus{outline: 0;}a { text-decoration: none; }strong { font-weight: bold; }
+
+		#RVV {
+			font: normal 70% tahoma,arial;
+			width: 680px;
+			height: 500px;
+			background-color: #eee;
+			display: none;
+		}
+
+			#Maximizer {
+				position: absolute;
+				top: 0;
+				left: 0;
+				border: 1px solid #000;
+				width: 46px;
+				height: 46px;
+				text-align: center;
+				display: none;
+				z-index: 999;
+			}
+
+			#Maximizer a {
+				display: block;
+				width: 44px;
+				height: 44px;
+				font: normal 72% tahoma;
+				text-transform: uppercase;
+				border: 1px solid #fff;
+				background-color: #37add7;
+				color: #fff;
+			}
+
+			#Maximizer a:hover {
+				background-color: #069;
+			}
+
+			#Maximizer a span {
+				display: block;
+				padding-top: 18px;
+			}
+
+			#RVV #Control { display: none; }
+
+			#RVV #Control #readonly {
+				position: absolute;
+				background-color: #fff;
+				width: 640px;
+				height: 500px;
+				filter:alpha(opacity=50);
+				z-index: 1;
+			}
+
+			#RVV #Control #common {
+				position: absolute;
+				width: 100%;
+				z-index: 2;
+			}
+
+				#RVV #Control #common .space {
+					width: 320px;
+					margin: 26% auto;
+					background-color: #fff;
+					border: 1px solid #666;
+				}
+
+				#RVV #Control #common .common_header {
+					height: 36px;
+					border-bottom: 1px solid #999;
+					background: #ccc url(images/common_title.png) repeat-x;
+				}
+
+					#RVV #Control #common .common_header h2 {
+						font-weight: bold;
+						color: #000;
+						padding: 12px 0 12px 12px;
+					}
+
+					#RVV #Control #common .common_header .common_header_content {
+						float: right;
+						padding: 8px 12px 0 0;
+					}
+
+						#RVV #Control #common .common_header .common_header_content a {
+							display: block;
+							margin-left: 1px;
+							float: left;
+							width: 22px;
+							height: 22px;
+							text-align: center;
+							background: url(images/header_icons.png) no-repeat;
+							color: #000;
+							font-weight: bold;
+						}
+
+							#RVV #Control #common .common_header .common_header_content a span {
+								padding-top: 4px;
+								display: block;
+							}
+
+						#RVV #Control #common .common_header .common_header_content a:hover {
+							color: #37add7;
+
+						}
+
+				#RVV #Control #common #common_content {
+					padding: 5px 8px;
+					text-align: center;
+				}
+
+
+				#RVV #Control #common #common_content strong {
+					color: #666;
+					display: block;
+					padding-bottom: 4px;
+				}
+
+
+		#RVV #Header {
+			height: 37px;
+		}
+
+			#RVV #Header .space {
+				height: 36px;
+				border: 1px solid #999;
+				border-bottom: none;
+				background: #ccc url(images/header.png) repeat-x;
+			}
+
+			#RVV #Header h1 {
+				text-transform: uppercase;
+				padding: 12px 0 12px 54px;
+				font-weight: bold;
+				background: url(images/icon.png) no-repeat;
+			}
+
+			#RVV #Header .header_addon {
+				float: right;
+				padding: 12px 12px 0 0;
+				color: #666;
+			}
+
+			#RVV #Header .header_content {
+				float: right;
+				padding: 8px 12px 0 0;
+			}
+
+				#RVV #Header .header_content a {
+					display: block;
+					margin-left: 1px;
+					float: left;
+					width: 22px;
+					height: 22px;
+					text-align: center;
+					background: url(images/header_icons.png) no-repeat;
+					color: #000;
+					font-weight: bold;
+				}
+
+					#RVV #Header .header_content a span {
+						padding-top: 4px;
+						display: block;
+					}
+
+					#RVV #Header .header_content a.silver {
+						background-position: 0 0;
+					}
+
+					#RVV #Header .header_content a.blue {
+						background-position: -23px 0;
+					}
+
+					#RVV #Header .header_content a.blue:hover {
+						color: #fff;
+					}
+
+				#RVV #Header .header_content a:hover {
+					color: #37add7;
+				}
+
+
+
+
+		#RVV #Contain {
+			height: 426px;
+			background-color: #f9f9f9;
+		}
+
+			#RVV #Contain .space {
+				height: 424px;
+				border: 1px solid #999;
+			}
+
+
+
+
+		#RVV #Botter {
+			height: 37px;
+		}
+
+			#RVV #Botter .space {
+				padding:6px 12px 5px 12px;
+				border: 1px solid #999;
+				border-top: none;
+				border-bottom-color: #666;
+				background: #ccc url(images/botter.png) repeat-x;
+			}
+
+			#RVV #Botter #response {
+				margin: 0 auto;
+				border: 1px solid #999;
+				display: block;
+				text-align: center;
+				padding: 5px 0;
+				font-weight: bold;
+			}
+
+
+
+
+
+		.s-button {
+			display: inline-block;
+			font-weight: bold;
+			background-color: #37add7;
+			border:1px solid #069;
+			color: #000;
+		}
+
+		.s-button span {
+			display: block;
+			border-top: 1px solid #cff;
+			border-bottom: 1px solid #37add7;
+			padding: 4px 10px;
+		}
+
+		.s-button:hover {
+			background-color: #069;
+			color: #fff;
+			border-color: #036;
+		}
+
+		.s-button:hover span {
+			border-top-color: #37add7;
+			border-bottom-color: #069;
+			padding:4px 10px;
+		}
+
+		.s-button:active {
+			border-color: #fff;
+		}
+
+
+		.s-frm-text {
+			width: 140px;
+			padding: 3px;
+			font: normal 1.2em arial;
+			border: 1px solid #999;
+			background-color: #fff;
+		}
+
+			.short .s-frm-text {
+				width: 55px;
+			}
+
+			.semi-short .s-frm-text {
+				width: 110px;
+			}
+
+			.large .s-frm-text {
+				width: 220px;
+			}
+
+		.lars select {
+			width: 100px;
+		}
+
+
+
+		#RVV #mydoc {
+			height: 424px;
+			overflow: auto;
+		}
+
+			#RVV #mydoc .mydoc-space {
+				width: 620px;
+				margin: 0 auto;
+				padding: 6px 0;
+			}
+
+
+
+			#RVV #mydoc .crush {
+				overflow: hidden;
+				background-color: #eee;
+				border: 1px solid #ccc;
+				padding-top: 2px;
+				height: 1%;
+			}
+
+			#RVV #mydoc .part {
+				width: 285px;
+				padding: 6px 10px;
+				margin-bottom: 2px;
+			}
+
+			#RVV #mydoc .cluster {
+				display: inline;
+			}
+
+			#RVV #mydoc .cab {
+				width: 233px;
+				text-align: center;
+				margin: 0 auto;
+				background-color: #ffc;
+				border: 1px solid #ccc;
+			}
+
+			#RVV #mydoc .special {
+				padding: 2px 0;
+				border: 1px solid #ccc;
+				background-color: #eee;
+				overflow: hidden;
+				height: 1%;
+			}
+
+			#RVV #mydoc .special .box {
+				float: left;
+				padding: 6px 10px;
+			}
+
+			#RVV #mydoc .tigtened {
+				background-color: #fc9;
+			}
+
+			#RVV #mydoc .tigtened input {
+				border-color: #000;
+			}
+
+			#RVV #mydoc .tigtened h4 {
+				font-weight: bold;
+			}
+
+
+
+			#RVV #mydoc .tigtenedSel input {
+				border-color: #000;
+			}
+
+			#RVV #mydoc .tigtenedSel h4 {
+				color: #f30;
+			}
+
+
+			#RVV #mydoc .cab h4 {
+				color: #900;
+				font-weight: bold;
+			}
+
+
+			#RVV #mydoc .inlh h4 {
+				display: inline;
+				padding-right: 10px;
+				vertical-align: top;
+			}
+
+			#RVV #mydoc h4 {
+				color: #069;
+				margin-bottom: 2px;
+			}
+
+			#RVV #mydoc h3 {
+				background-color: #333;
+				color: #fff;
+				padding: 2px 10px;
+				font-weight: bold;
+			}
+
+			#RVV #mydoc h3.hcab {
+				width: 234px;
+				margin: 0 auto;
+			}
+
+			#RVV #mydoc h3.hreg {
+				
+			}
+
+			#RVV #mydoc .very {
+				background-color: #000;
+			}
+
+			.left {
+				float:left;
+			}
+
+			.right {
+				float:right;
+			}
+
+			.title {
+				font-size: 1.5em;
+				display: block;
+				color: #ccc;
+				border-bottom: 1px dotted #000;
+				padding: 0 0 8px 12px;
+				margin-bottom: 12px;
+				text-align: left;
+			}
+
+			.title .blue {
+				color: #069;
+			}
+
+			.title .gray {
+				color: #666;
+			}
+
+			.super {
+				width: 288px;
+			}
+
+</style>
+
+</head>
+
+
+<body id="RVV">
+
+	<div id="Maximizer"><a id="Maximizer_point" title="Maximizar" href="javascript:void(0)"><span>Maximizar</span></a></div>
+
+	<div id="Control">
+		<div id="readonly">&nbsp;</div>
+		<div id="common">
+			<div class="space">
+				<div class="common_header">
+					<div class="common_header_content">
+						<a id="common_icon_close" href="javascript:void(0)"><span>X</span></a>
+					</div>
+					<h2>Acerca de</h2>
+				</div>
+				<div id="common_content"><br /><span class="title"><span class="blue">Default</span><span class="gray">Program</span> v1.4</span><strong>Desarrollado por Elias A.Soshina</strong>2005-2011 &copy; Todos los derechos reservados.<br /><br /></div>
+			</div>
+		</div>
+	</div>
+
+	<div id="Header">
+		<div class="space">
+			<div class="header_content">
+				<a id="icon_help" title="Acerca de" class="blue" href="javascript:void(0)"><span>?</span></a>
+				<a id="icon_minimize" title="Compactar" class="silver" href="javascript:void(0)"><span>.</span></a>
+				<a id="icon_close" title="Cerrar programa" class="silver" href="javascript:void(0)"><span>X</span></a>
+			</div>
+			<div class="header_addon"><span id="px">&nbsp;</span> - <span id="py">&nbsp;</span></div>
+			<h1>Registro de venta de veh&iacute;culos</h1>
+		</div>
+	</div>
+
+	<div id="Contain">
+		<div class="space">
+			<div id="mydoc">
+			<div class="mydoc-space">
+
+				<h3 class="hcab very">Datos Registrador</h3>
+				<div class="cab inlh part semi-short">
+					<h4>N&uacute;mero RUC</h4>
+					<input class="s-frm-text" type="text" id="numeroRuc" /><br />
+				</div><br />
+
+				<h3 class="hreg very">Datos Ventas</h3>
+				<div class="crush">
+				<div class="left">
+					<div class="part semi-short">
+						<h4>RUC comercializador</h4>
+						<input class="s-frm-text" type="text" id="rucComercializador" /><br />
+					</div>
+
+					<div class="part semi-short">
+						<h4>Certificado de Producci&oacute;n Nacional</h4>
+						<input class="s-frm-text" type="text" id="CAMVCpn" /><br />
+					</div>
+
+					<div class="part">
+						<h4>Serial VIN</h4>
+						<input class="s-frm-text" type="text" id="serialVin" /><br />
+					</div>
+
+					<div class="part large">
+						<h4>Nombre del propietario</h4>
+						<input class="s-frm-text" type="text" id="nombrePropietario" /><br />
+					</div>
+
+					<div class="part lars">
+						<h4>Identificaci&oacute;n del propietario</h4>
+						<div class="cluster">
+						<select id="tipoIdentificacionPropietario">
+							<option value="C" selected="selected">C&eacute;dula</option>
+							<option value="R">RUC</option>
+							<option value="P">Pasaporte</option>
+						</select>
+						</div><br />
+					</div>
+
+					<div class="part">
+						<h4>Numero de identificaci&oacute;n</h4>
+						<input class="s-frm-text" type="text" id="numeroDocumentoPropietario" /><br />
+					</div>
+
+					<div class="part">
+						<h4>Tipo del comprobante</h4>
+						<div class="cluster">
+						<input type="radio" id="tC1" name="tipoComprobante" value="factura" checked="checked" />
+						<label for="tC1">Factura</label>
+						<input type="radio" id="tC2" name="tipoComprobante" value="notaDeVenta" />
+						<label for="tC2">Nota de venta</label>
+						</div>
+					</div>
+
+				</div>
+
+				<div class="right">
+					<div class="part short">
+						<h4>Establecimiento comprobante</h4>
+						<input class="s-frm-text" type="text" id="establecimientoComprobante" /><br />
+					</div>
+
+					<div class="part short">
+						<h4>Punto de emisi&oacute;n del comprobante</h4>
+						<input class="s-frm-text" type="text" id="puntoEmisionComprobante" /><br />
+					</div>
+
+					<div class="part short">
+						<h4>N&uacute;mero comprobante</h4>
+						<input class="s-frm-text" type="text" id="numeroComprobante" /><br />
+					</div>
+
+					<div class="part semi-short">
+						<h4>N&uacute;mero autorizaci&oacute;n</h4>
+						<input class="s-frm-text" type="text" id="numeroAutorizacion" /><br />
+					</div>
+
+					<div class="part semi-short">
+						<h4>Fecha de venta</h4>
+						<input class="s-frm-text" type="text" id="fechaVenta" /><br />
+					</div>
+
+					<div class="part semi-short">
+						<h4>Precio de venta</h4>
+						<input class="s-frm-text" type="text" id="precioVenta" /><br />
+					</div>
+
+					<div class="part short">
+						<h4>C&oacute;digo Cant&oacute;n Matriculaci&oacute;n</h4>
+
+						<div class="cluster">
+						<select id="codigoCantonMatriculacion" class="super">
+							<optgroup label="AZUAY">
+								<option value="20115">CAMILO PONCE ENRIQUEZ</option>
+								<option value="20111">CHORDELEG</option>
+								<option value="20101">CUENCA</option>
+								<option value="20112">EL PAN</option>
+								<option value="20102">GIRON</option>
+								<option value="20114">GUACHAPALA</option>
+								<option value="20103">GUALACEO</option>
+								<option value="20104">NABON</option>
+								<option value="20110">O&Ntilde;A</option>
+								<option value="20105">PAUTE</option>
+								<option value="20106">PUCARA</option>
+								<option value="20107">SAN FERNANDO</option>
+								<option value="20108">SANTA ISABEL</option>
+								<option value="20113">SEVILLA DE ORO</option>
+								<option value="20109">SIGSIG</option>
+							</optgroup>
+							<optgroup label="BOLIVAR">
+								<option value="20206">CALUMA</option>
+								<option value="20202">CHILLANES</option>
+								<option value="20203">CHIMBO</option>
+								<option value="20204">ECHEANDIA</option>
+								<option value="20201">GUARANDA</option>
+								<option value="20207">LAS NAVES</option>
+								<option value="20205">SAN MIGUEL</option>
+							</optgroup>
+							<optgroup label="CA&Ntilde;AR">
+								<option value="20301">AZOGUES</option>
+								<option value="20302">BIBLIAN</option>
+								<option value="20303">CA&Ntilde;AR</option>
+								<option value="20306">DELEG</option>
+								<option value="20305">EL TAMBO</option>
+								<option value="20304">LA TRONCAL</option>
+								<option value="20307">SUSCAL</option>
+							</optgroup>
+							<optgroup label="CARCHI">
+								<option value="20402">BOLIVAR</option>
+								<option value="20403">ESPEJO</option>
+								<option value="20404">MIRA</option>
+								<option value="20405">MONTUFAR</option>
+								<option value="20406">SAN PEDRO DE HUACA</option>
+								<option value="20401">TULCAN</option>
+							</optgroup>
+							<optgroup label="CHIMBORAZO">
+								<option value="20602">ALAUSI</option>
+								<option value="20604">CHAMBO</option>
+								<option value="20605">CHUNCHI</option>
+								<option value="20603">COLTA</option>
+								<option value="20610">CUMANDA</option>
+								<option value="20606">GUAMOTE</option>
+								<option value="20607">GUANO</option>
+								<option value="20608">PALLATANGA</option>
+								<option value="20609">PENIPE</option>
+								<option value="20601">RIOBAMBA</option>
+							</optgroup>
+							<optgroup label="COTOPAXI">
+								<option value="20502">LA MANA</option>
+								<option value="20501">LATACUNGA</option>
+								<option value="20503">PANGUA</option>
+								<option value="20504">PUJILI</option>
+								<option value="20505">SALCEDO</option>
+								<option value="20506">SAQUISILI</option>
+								<option value="20507">SIGCHOS</option>
+							</optgroup>
+							<optgroup label="EL ORO">
+								<option value="10702">ARENILLAS</option>
+								<option value="10703">ATAHUALPA</option>
+								<option value="10704">BALSAS</option>
+								<option value="10705">CHILLA</option>
+								<option value="10706">EL GUABO</option>
+								<option value="10707">HUAQUILLAS</option>
+								<option value="10714">LAS LAJAS</option>
+								<option value="10701">MACHALA</option>
+								<option value="10708">MARCABELI</option>
+								<option value="10709">PASAJE</option>
+								<option value="10710">PI&Ntilde;AS</option>
+								<option value="10711">PORTOVELO</option>
+								<option value="10712">SANTA ROSA</option>
+								<option value="10713" selected="selected">ZARUMA</option>
+							</optgroup>
+							<optgroup label="ESMERALDAS">
+								<option value="10806">ATACAMES</option>
+								<option value="10802">ELOY ALFARO</option>
+								<option value="10801">ESMERALDAS</option>
+								<option value="10808">LA CONCORDIA</option>
+								<option value="10803">MUISNE</option>
+								<option value="10804">QUININDE</option>
+								<option value="10807">RIO VERDE</option>
+								<option value="10805">SAN LORENZO</option>
+							</optgroup>
+							<optgroup label="GALAPAGOS">
+								<option value="42002">ISABELA</option>
+								<option value="42001">SAN CRISTOBAL</option>
+								<option value="42003">SANTA CRUZ</option>
+							</optgroup>
+							<optgroup label="GUAYAS">
+								<option value="10902">ALFREDO BAQUERIZO MORENO (JUJAN)</option>
+								<option value="10903">BALAO</option>
+								<option value="10904">BALZAR</option>
+								<option value="10905">COLIMES</option>
+								<option value="10923">CORONEL MARCELINO MARIDUE&Ntilde;A</option>
+								<option value="10906">DAULE</option>
+								<option value="10907">DURAN</option>
+								<option value="10908">EL EMPALME</option>
+								<option value="10909">EL TRIUNFO</option>
+								<option value="10927">GENERAL ANTONIO ELIZALDE</option>
+								<option value="10901">GUAYAQUIL</option>
+								<option value="10928">ISIDRO AYORA</option>
+								<option value="10924">LOMAS DE SARGENTILLO</option>
+								<option value="10910">MILAGRO</option>
+								<option value="10911">NARANJAL</option>
+								<option value="10912">NARANJITO</option>
+								<option value="10925">NOBOL (VICENTE PIEDRAHITA)</option>
+								<option value="10913">PALESTINA</option>
+								<option value="10914">PEDRO CARBO</option>
+								<option value="10921">PLAYAS (GENERAL VILLAMIL)</option>
+								<option value="10919">SALITRE</option>
+								<option value="10916">SAMBORONDON</option>
+								<option value="10920">SAN JACINTO DE YAGUACHI</option>
+								<option value="10918">SANTA LUCIA</option>
+								<option value="10922">SIMON BOLIVAR</option>
+							</optgroup>
+							<optgroup label="IMBABURA">
+								<option value="21002">ANTONIO ANTE</option>
+								<option value="21003">COTACACHI</option>
+								<option value="21001">IBARRA</option>
+								<option value="21004">OTAVALO</option>
+								<option value="21005">PIMAMPIRO</option>
+								<option value="21006">SAN MIGUEL DE URCUQUI</option>
+							</optgroup>
+							<optgroup label="LOJA">
+								<option value="21102">CALVAS</option>
+								<option value="21103">CATAMAYO</option>
+								<option value="21104">CELICA</option>
+								<option value="21105">CHAHUARPAMBA</option>
+								<option value="21106">ESPINDOLA</option>
+								<option value="21107">GONZANAMA</option>
+								<option value="21101">LOJA</option>
+								<option value="21108">MACARA</option>
+								<option value="21116">OLMEDO</option>
+								<option value="21109">PALTAS</option>
+								<option value="21114">PINDAL</option>
+								<option value="21110">PUYANGO</option>
+								<option value="21115">QUILANGA</option>
+								<option value="21111">SARAGURO</option>
+								<option value="21112">SOZORANGA</option>
+								<option value="21113">ZAPOTILLO</option>
+							</optgroup>
+							<optgroup label="LOS RIOS">
+								<option value="11202">BABA</option>
+								<option value="11201">BABAHOYO</option>
+								<option value="11210">BUENA FE</option>
+								<option value="11212">MOCACHE</option>
+								<option value="11203">MONTALVO</option>
+								<option value="11209">PALENQUE</option>
+								<option value="11204">PUEBLO VIEJO</option>
+								<option value="11205">QUEVEDO</option>
+								<option value="11213">QUINSALOMA</option>
+								<option value="11206">URDANETA</option>
+								<option value="11211">VALENCIA</option>
+								<option value="11207">VENTANAS</option>
+								<option value="11208">VINCES</option>
+							</optgroup>
+							<optgroup label="MANABI">
+								<option value="11316">24 DE MAYO</option>
+								<option value="11302">BOLIVAR</option>
+								<option value="11303">CHONE</option>
+								<option value="11304">EL CARMEN</option>
+								<option value="11305">FLAVIO ALFARO</option>
+								<option value="11320">JAMA</option>
+								<option value="11321">JARAMIJO</option>
+								<option value="11306">JIPIJAPA</option>
+								<option value="11307">JUNIN</option>
+								<option value="11308">MANTA</option>
+								<option value="11309">MONTECRISTI</option>
+								<option value="11318">OLMEDO</option>
+								<option value="11310">PAJAN</option>
+								<option value="11317">PEDERNALES</option>
+								<option value="11311">PICHINCHA</option>
+								<option value="11301">PORTOVIEJO</option>
+								<option value="11319">PUERTO LOPEZ</option>
+								<option value="11312">ROCAFUERTE</option>
+								<option value="11322">SAN VICENTE</option>
+								<option value="11313">SANTA ANA</option>
+								<option value="11314">SUCRE</option>
+								<option value="11315">TOSAGUA</option>
+							</optgroup>
+							<optgroup label="MORONA SANTIAGO">
+								<option value="31402">GUALAQUIZA</option>
+								<option value="31407">HUAMBOYA</option>
+								<option value="31403">LIMON - INDANZA</option>
+								<option value="31410">LOGRO&Ntilde;O</option>
+								<option value="31401">MORONA</option>
+								<option value="31411">PABLO SEXTO</option>
+								<option value="31404">PALORA</option>
+								<option value="31408">SAN JUAN BOSCO</option>
+								<option value="31405">SANTIAGO</option>
+								<option value="31406">SUCUA</option>
+								<option value="31409">TAISHA</option>
+								<option value="31412">TIWINTZA</option>
+							</optgroup>
+							<optgroup label="NAPO">
+								<option value="31503">ARCHIDONA</option>
+								<option value="31509">CARLOS JULIO AROSEMENA TOLA</option>
+								<option value="31504">EL CHACO</option>
+								<option value="31507">QUIJOS</option>
+								<option value="31501">TENA</option>
+							</optgroup>
+							<optgroup label="ORELLANA">
+								<option value="32202">AGUARICO</option>
+								<option value="32201">FRANCISCO DE ORELLANA</option>
+								<option value="32203">LA JOYA DE LOS SACHAS</option>
+								<option value="32204">LORETO</option>
+							</optgroup>
+							<optgroup label="PASTAZA">
+								<option value="31604">ARAJUNO</option>
+								<option value="31602">MERA</option>
+								<option value="31601">PASTAZA</option>
+								<option value="31603">SANTA CLARA</option>
+							</optgroup>
+							<optgroup label="PICHINCHA">
+								<option value="21702">CAYAMBE</option>
+								<option value="21703">MEJIA</option>
+								<option value="21704">PEDRO MONCAYO</option>
+								<option value="21708">PEDRO VICENTE MALDONADO</option>
+								<option value="21709">PUERTO QUITO</option>
+								<option value="21701">QUITO</option>
+								<option value="21705">RUMI&Ntilde;AHUI</option>
+								<option value="21707">SAN MIGUEL DE LOS BANCOS</option>
+							</optgroup>
+							<optgroup label="SANTA ELENA">
+								<option value="12402">LA LIBERTAD</option>
+								<option value="12403">SALINAS</option>
+								<option value="12401">SANTA ELENA</option>
+							</optgroup>
+							<optgroup label="STO. DOMINGO">
+								<option value="22301">SANTO DOMINGO</option>
+							</optgroup>
+							<optgroup label="SUCUMBIOS">
+								<option value="32106">CASCALES</option>
+								<option value="32107">CUYABENO</option>
+								<option value="32102">GONZALO PIZARRO</option>
+								<option value="32101">LAGO AGRIO</option>
+								<option value="32103">PUTUMAYO</option>
+								<option value="32104">SHUSHUFINDI</option>
+								<option value="32105">SUCUMBIOS</option>
+							</optgroup>
+							<optgroup label="TUNGURAHUA">
+								<option value="21801">AMBATO</option>
+								<option value="21802">BA&Ntilde;OS DE AGUA SANTA</option>
+								<option value="21803">CEVALLOS</option>
+								<option value="21804">MOCHA</option>
+								<option value="21805">PATATE</option>
+								<option value="21806">QUERO</option>
+								<option value="21807">SAN PEDRO DE PELILEO</option>
+								<option value="21808">SANTIAGO DE PILLARO</option>
+								<option value="21809">TISALEO</option>
+							</optgroup>
+							<optgroup label="ZAMORA CHINCHIPE">
+								<option value="31907">CENTINELA DEL CONDOR</option>
+								<option value="31902">CHINCHIPE</option>
+								<option value="31906">EL PANGUI</option>
+								<option value="31903">NANGARITZA</option>
+								<option value="31908">PALANDA</option>
+								<option value="31909">PAQUISHA</option>
+								<option value="31904">YACUAMBI</option>
+								<option value="31905">YANTZAZA (YANZATZA)</option>
+								<option value="31901">ZAMORA</option>
+							</optgroup>
+						</select>
+						</div>
+					</div>
+				</div></div><br />
+
+				<h3 class="hreg">Direcci&oacute;n</h3>
+				<div class="special">
+					<div class="box">
+						<h4>Tipo de direcci&oacute;n</h4>
+						<div class="cluster">
+						<input type="radio" id="tD1" name="tipoDir" value="residencia" checked="checked" />
+						<label for="tD1">Residencia</label>
+						<input type="radio" id="tD2" name="tipoDir" value="oficina" />
+						<label for="tD2">Oficina</label>
+						</div>
+					</div>
+					<div class="box">
+						<h4>Calle</h4>
+						<input class="s-frm-text" type="text" id="calleDir" />
+					</div>
+					<div class="box short">
+						<h4>Numero</h4>
+						<input class="s-frm-text" type="text" id="numeroDir" />
+					</div>
+					<div class="box">
+						<h4>Intersecci&oacute;n</h4>
+						<input class="s-frm-text" type="text" id="interseccionDir" />
+					</div>
+				</div><br />
+
+				<h3 class="hreg">Tel&eacute;fono</h3>
+				<div class="special">
+					<div class="box">
+						<h4>Tipo de tel&eacute;fono</h4>
+
+						<div class="cluster">
+						<input type="radio" id="tT1" name="tipoTel" value="movil" checked="checked" />
+						<label for="tT1">Movil</label>
+						<input type="radio" id="tT2" name="tipoTel" value="fijo" />
+						<label for="tT2">Fijo</label>
+						</div>
+					</div>
+					<div class="box">
+						<h4>Provincia</h4>
+
+						<div class="cluster">
+						<select id="provinciaCodTel">
+							<optgroup label="Costa">
+								<option value="107" selected="selected">El Oro</option>
+								<option value="108">Esmeraldas</option>
+								<option value="113">Manab&iacute;</option>
+								<option value="112">Los R&iacute;os</option>
+								<option value="109">Guayas</option>
+								<option value="124">Santa Elena</option>
+							</optgroup>
+							<optgroup label="Sierra">
+								<option value="204">Carchi</option>
+								<option value="210">Imbabura</option>
+								<option value="217">Pichincha</option>
+								<option value="205">Cotopaxi</option>
+								<option value="218">Tungurahua</option>
+								<option value="202">Bol&iacute;var</option>
+								<option value="206">Chimborazo</option>
+								<option value="203">Ca&ntilde;ar</option>
+								<option value="201">Azuay</option>
+								<option value="211">Loja</option>
+								<option value="223">Sto.Domingo</option>
+							</optgroup>
+							<optgroup label="Oriente">
+								<option value="321">Sucumb&iacute;os</option>
+								<option value="315">Napo</option>
+								<option value="316">Pastaza</option>
+								<option value="322">Orellana</option>
+								<option value="314">Morona Santiago</option>
+								<option value="319">Zamora Chinchipe</option>
+							</optgroup>
+							<optgroup label="Insular">
+								<option value="420">Gal&aacute;pagos</option>
+							</optgroup>
+						</select>
+						</div>
+
+					</div>
+					<div class="box semi-short">
+						<h4>Numero telef&oacute;nico</h4>
+						<input class="s-frm-text" type="text" id="numeroTel" />
+					</div>
+				</div>
+			</div>
+			</div>
+		</div>
+	</div>
+
+	<div id="Botter">
+		<div class="space">
+			<a id="ResetButton" title="Vaciar los campos de texto" class="s-button left" href="javascript:void(0)"><span>Nuevo</span></a>
+			<a id="GenerateButton" class="s-button right" href="javascript:void(0)"><span>Generar archivo XML</span></a>
+			<span id="response">&nbsp;</span>
+		</div>
+	</div>
+
+</body>
+
+
+</html>

@@ -1,0 +1,84 @@
+<!doctype html>
+
+<hta:application
+	border = "none" caption = "no" contextmenu = "no" icon = "" innerborder = "no" navigable = "no" scroll = "no" scrollflat = "yes" selection = "no" singleinstance="yes" showintaskbar = "yes"
+
+	applicationname="Default 7"
+	applicationDataPath="data-v7/"
+	width="640"
+	height="360"
+	resizeWidth="280"
+	resizeHeight="55"
+	headerHeight="48"
+/>
+
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Default 7</title>
+	<link rel="stylesheet" type="text/css" href="data-v7/style.css">
+	<script type="text/javascript" src="data-v7/jquery.js"></script>
+	<script type="text/javascript" src="data-v7/default.js"></script>
+	<script>
+		$(function(){
+
+			// CODE ...
+
+		});
+	</script>
+</head>
+
+<body>
+
+<div id="AppMenu">
+	<ul class="menu">
+		<li class="menu-item" item-ref="#sm-file"><a>Archivo</a></li>
+		<li class="menu-item" item-ref="#sm-edit"><a>Editar</a></li>
+	</ul>
+
+	<ul class="submenu" id="sm-file">
+		<li class="submenu-item"><a>Enlace 1</a></li>
+		<li class="submenu-item"><a>Enlace 2</a></li>
+		<li class="submenu-item"><a>Enlace 3</a></li>
+		<li class="submenu-item submenu-active" item-ref="#another_menu"><a>Enlace 4</a></li>
+	</ul>
+
+	<ul class="submenu" id="sm-edit">
+		<li class="submenu-item"><a>Enlace Chunker 1</a></li>
+		<li class="submenu-item submenu-active" item-ref="#third_menu"><a>Enlace Chunker 2</a></li>
+		<li class="submenu-item"><a>Enlace Chunker 3</a></li>
+		<li class="submenu-item"><a>Enlace Chunker 4</a></li>
+	</ul>
+
+	<ul class="submenu" id="another_menu">
+		<li class="submenu-item"><a>Enlace Sub 1</a></li>
+		<li class="submenu-item"><a>Enlace Sub 2</a></li>
+		<li class="submenu-item"><a>Enlace Sub 3</a></li>
+		<li class="submenu-item"><a>Enlace Sub 4</a></li>
+	</ul>
+
+	<ul class="submenu" id="third_menu">
+		<li class="submenu-item"><a>Enlace Sub 1</a></li>
+		<li class="submenu-item"><a>Enlace Sub 2</a></li>
+		<li class="submenu-item"><a>Enlace Sub 3</a></li>
+		<li class="submenu-item"><a>Enlace Sub 4</a></li>
+		<li class="submenu-item"><a>Enlace Sub 5</a></li>
+		<li class="submenu-item submenu-active" item-ref="#four"><a>Enlace Sub 6</a></li>
+		<li class="submenu-item"><a>Enlace Sub 7</a></li>
+	</ul>
+
+	<ul class="submenu" id="four">
+		<li class="submenu-item"><a>Enlace Sub 1</a></li>
+		<li class="submenu-item"><a>Enlace Sub 2</a></li>
+		<li class="submenu-item"><a>Enlace Sub 3</a></li>
+		<li class="submenu-item"><a>Enlace Sub 4</a></li>
+		<li class="submenu-item"><a>Enlace Sub 5</a></li>
+	</ul>
+</div>
+
+	<div style="padding: 12px; background-color: #ccc; color: #c30; text-align: center;">Welcome</div>
+	<span style="display: block; padding: 48px; text-align: center; font-size: 77%;">2011-2013 &copy; OKZGN</span>
+
+</body>
+
+</html>
