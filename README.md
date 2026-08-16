@@ -1,6 +1,6 @@
 # App Boilerplate
 
-> **Proyecto Histórico:** Un framework ligero para aplicaciones de escritorio en Windows basado en **HTML Application (HTA)**, **ActiveX** y **jQuery 1.12.4**, desarrollado en la era previa a Electron y NW.js.
+> **Software Histórico:** Framework ligero para aplicaciones de escritorio en Windows basado en **HTML Application (HTA)**, **ActiveX** y **jQuery 1.12.4**, desarrollado en la era previa a Electron y NW.js.
 
 ---
 
